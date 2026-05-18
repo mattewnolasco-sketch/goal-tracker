@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a1a1a">
+    <title>Goal Tracker</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-card: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border: #e0e0e0;
+            --accent-health: #10b981;
+            --accent-finance: #3b82f6;
+            --accent-academic: #8b5cf6;
+            --accent-personal: #f59e0b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2a2a2a;
+            --bg-card: #242424;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #707070;
+            --border: #3a3a3a;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.25rem;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--bg-secondary);
+            overflow-x: auto;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--accent-finance);
+        }
+
+        .content {
+            padding: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .goal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.75rem;
+        }
+
+        .goal-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .goal-category {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .category-health {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-health);
+        }
+
+        .category-finance {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-finance);
+        }
+
+        .category-academic {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--accent-academic);
+        }
+
+        .category-personal {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-personal);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0.75rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-finance);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .streak-counter {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-top: 0.75rem;
+        }
+
+        .streak-icon {
+            font-size: 1.5rem;
+        }
+
+        .streak-number {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-health);
+        }
+
+        .btn {
+            background: var(--accent-finance);
+            color: white;
+            border: none;
+            padding: 0.875rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--accent-finance);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 50;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        .goal-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            flex: 1;
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 Goal Tracker</h1>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('overview')">Overview</button>
+        <button class="tab" onclick="switchTab('health')">Health</button>
+        <button class="tab" onclick="switchTab('finance')">Finance</button>
+        <button class="tab" onclick="switchTab('academic')">Academic</button>
+        <button class="tab" onclick="switchTab('personal')">Personal</button>
+    </div>
+
+    <div class="content">
+        <!-- Overview Tab -->
+        <div id="overview-tab" class="tab-content active">
+            <div class="stats-grid" id="overview-stats"></div>
+            <div id="recent-goals"></div>
+        </div>
+
+        <!-- Health Tab -->
+        <div id="health-tab" class="tab-content">
+            <div id="health-goals"></div>
+        </div>
+
+        <!-- Finance Tab -->
+        <div id="finance-tab" class="tab-content">
+            <div id="finance-goals"></div>
+        </div>
+
+        <!-- Academic Tab -->
+        <div id="academic-tab" class="tab-content">
+            <div id="academic-goals"></div>
+        </div>
+
+        <!-- Personal Tab -->
+        <div id="personal-tab" class="tab-content">
+            <div id="personal-goals"></div>
+        </div>
+    </div>
+
+    <!-- Add Goal FAB -->
+    <button class="fab" onclick="openAddGoal()">+</button>
+
+    <!-- Add/Edit Goal Modal -->
+    <div id="goal-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Add Goal</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="goal-form" onsubmit="saveGoal(event)">
+                <div class="input-group">
+                    <label class="input-label">Goal Title</label>
+                    <input type="text" id="goal-title" required placeholder="e.g., Run 3x per week">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Category</label>
+                    <select id="goal-category" required>
+                        <option value="health">Health</option>
+                        <option value="finance">Finance</option>
+                        <option value="academic">Academic</option>
+                        <option value="personal">Personal</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Goal Type</label>
+                    <select id="goal-type" required onchange="toggleGoalFields()">
+                        <option value="milestone">Milestone (One-time goal)</option>
+                        <option value="habit">Habit (Daily/Weekly)</option>
+                        <option value="numeric">Numeric Target</option>
+                    </select>
+                </div>
+                <div class="input-group" id="target-field">
+                    <label class="input-label">Target Value</label>
+                    <input type="number" id="goal-target" placeholder="e.g., 20000 (for savings)">
+                </div>
+                <div class="input-group" id="current-field">
+                    <label class="input-label">Current Value</label>
+                    <input type="number" id="goal-current" placeholder="e.g., 5000">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Target Date (Optional)</label>
+                    <input type="date" id="goal-date">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Notes</label>
+                    <textarea id="goal-notes" placeholder="Additional details..."></textarea>
+                </div>
+                <input type="hidden" id="goal-id">
+                <button type="submit" class="btn">Save Goal</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize app
+        let goals = JSON.parse(localStorage.getItem('goals') || '[]');
+        let theme = localStorage.getItem('theme') || 'light';
+
+        // Set initial theme
+        document.documentElement.setAttribute('data-theme', theme);
+        updateThemeIcon();
+
+        // Sample data for first-time users
+        if (goals.length === 0) {
+            goals = [
+                {
+                    id: Date.now() + 1,
+                    title: 'FHA Down Payment Fund',
+                    category: 'finance',
+                    type: 'numeric',
+                    current: 5000,
+                    target: 18000,
+                    targetDate: '2027-12-31',
+                    notes: 'Yonkers house-hacking goal',
+                    createdAt: Date.now()
+                },
+                {
+                    id: Date.now() + 2,
+                    title: 'Gym 4x per week',
+                    category: 'health',
+                    type: 'habit',
+                    streak: 12,
+                    lastCompleted: Date.now() - 86400000,
+                    notes: 'Build consistency',
+                    createdAt: Date.now()
+                },
+                {
+                    id: Date.now() + 3,
+                    title: 'Maintain 3.8+ GPA',
+                    category: 'academic',
+                    type: 'milestone',
+                    progress: 75,
+                    targetDate: '2026-05-31',
+                    notes: 'Spring 2026 semester',
+                    createdAt: Date.now()
+                }
+            ];
+            saveToStorage();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('goals', JSON.stringify(goals));
+        }
+
+        function toggleTheme() {
+            theme = theme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const btn = document.querySelector('.theme-toggle');
+            btn.textContent = theme === 'light' ? '🌙' : '☀️';
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            renderContent();
+        }
+
+        function openAddGoal() {
+            document.getElementById('modal-title').textContent = 'Add Goal';
+            document.getElementById('goal-form').reset();
+            document.getElementById('goal-id').value = '';
+            toggleGoalFields();
+            document.getElementById('goal-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('goal-modal').classList.remove('active');
+        }
+
+        function toggleGoalFields() {
+            const type = document.getElementById('goal-type').value;
+            const targetField = document.getElementById('target-field');
+            const currentField = document.getElementById('current-field');
+            
+            if (type === 'numeric') {
+                targetField.style.display = 'block';
+                currentField.style.display = 'block';
+            } else {
+                targetField.style.display = 'none';
+                currentField.style.display = 'none';
+            }
+        }
+
+        function saveGoal(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('goal-id').value;
+            const goal = {
+                id: id ? parseInt(id) : Date.now(),
+                title: document.getElementById('goal-title').value,
+                category: document.getElementById('goal-category').value,
+                type: document.getElementById('goal-type').value,
+                targetDate: document.getElementById('goal-date').value,
+                notes: document.getElementById('goal-notes').value,
+                createdAt: id ? goals.find(g => g.id === parseInt(id)).createdAt : Date.now()
+            };
+
+            if (goal.type === 'numeric') {
+                goal.target = parseFloat(document.getElementById('goal-target').value) || 0;
+                goal.current = parseFloat(document.getElementById('goal-current').value) || 0;
+            } else if (goal.type === 'habit') {
+                goal.streak = id ? goals.find(g => g.id === parseInt(id)).streak || 0 : 0;
+            } else {
+                goal.progress = id ? goals.find(g => g.id === parseInt(id)).progress || 0 : 0;
+            }
+
+            if (id) {
+                const index = goals.findIndex(g => g.id === parseInt(id));
+                goals[index] = goal;
+            } else {
+                goals.push(goal);
+            }
+
+            saveToStorage();
+            closeModal();
+            renderContent();
+        }
+
+        function editGoal(id) {
+            const goal = goals.find(g => g.id === id);
+            if (!goal) return;
+
+            document.getElementById('modal-title').textContent = 'Edit Goal';
+            document.getElementById('goal-id').value = goal.id;
+            document.getElementById('goal-title').value = goal.title;
+            document.getElementById('goal-category').value = goal.category;
+            document.getElementById('goal-type').value = goal.type;
+            document.getElementById('goal-date').value = goal.targetDate || '';
+            document.getElementById('goal-notes').value = goal.notes || '';
+
+            if (goal.type === 'numeric') {
+                document.getElementById('goal-target').value = goal.target;
+                document.getElementById('goal-current').value = goal.current;
+            }
+
+            toggleGoalFields();
+            document.getElementById('goal-modal').classList.add('active');
+        }
+
+        function deleteGoal(id) {
+            if (confirm('Are you sure you want to delete this goal?')) {
+                goals = goals.filter(g => g.id !== id);
+                saveToStorage();
+                renderContent();
+            }
+        }
+
+        function updateProgress(id, value) {
+            const goal = goals.find(g => g.id === id);
+            if (!goal) return;
+
+            if (goal.type === 'numeric') {
+                goal.current = parseFloat(value);
+            } else if (goal.type === 'milestone') {
+                goal.progress = parseFloat(value);
+            }
+
+            saveToStorage();
+            renderContent();
+        }
+
+        function incrementStreak(id) {
+            const goal = goals.find(g => g.id === id);
+            if (!goal || goal.type !== 'habit') return;
+
+            const today = new Date().setHours(0, 0, 0, 0);
+            const lastCompleted = goal.lastCompleted ? new Date(goal.lastCompleted).setHours(0, 0, 0, 0) : 0;
+            const daysDiff = Math.floor((today - lastCompleted) / 86400000);
+
+            if (daysDiff === 0) {
+                alert('Already completed today!');
+                return;
+            }
+
+            if (daysDiff === 1) {
+                goal.streak = (goal.streak || 0) + 1;
+            } else {
+                goal.streak = 1;
+            }
+
+            goal.lastCompleted = Date.now();
+            saveToStorage();
+            renderContent();
+        }
+
+        function renderGoalCard(goal) {
+            const progress = goal.type === 'numeric' 
+                ? Math.round((goal.current / goal.target) * 100)
+                : goal.progress || 0;
+
+            let progressSection = '';
+            
+            if (goal.type === 'numeric') {
+                progressSection = `
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%; background: var(--accent-${goal.category})"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>$${goal.current.toLocaleString()} / $${goal.target.toLocaleString()}</span>
+                        <span>${progress}%</span>
+                    </div>
+                `;
+            } else if (goal.type === 'milestone') {
+                progressSection = `
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%; background: var(--accent-${goal.category})"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Progress</span>
+                        <span>${progress}%</span>
+                    </div>
+                `;
+            } else if (goal.type === 'habit') {
+                progressSection = `
+                    <div class="streak-counter">
+                        <span class="streak-icon">🔥</span>
+                        <div>
+                            <div class="streak-number">${goal.streak || 0} days</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary)">Current streak</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="goal-card">
+                    <div class="goal-header">
+                        <div>
+                            <div class="goal-title">${goal.title}</div>
+                            ${goal.targetDate ? `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem">Due: ${new Date(goal.targetDate).toLocaleDateString()}</div>` : ''}
+                        </div>
+                        <span class="goal-category category-${goal.category}">${goal.category}</span>
+                    </div>
+                    ${goal.notes ? `<div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem">${goal.notes}</div>` : ''}
+                    ${progressSection}
+                    <div class="goal-actions">
+                        ${goal.type === 'habit' ? `<button class="btn btn-small" onclick="incrementStreak(${goal.id})">Complete Today</button>` : ''}
+                        <button class="btn btn-small btn-secondary" onclick="editGoal(${goal.id})">Edit</button>
+                        <button class="delete-btn" onclick="deleteGoal(${goal.id})">🗑️</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderContent() {
+            // Overview stats
+            const totalGoals = goals.length;
+            const completedGoals = goals.filter(g => {
+                if (g.type === 'numeric') return g.current >= g.target;
+                if (g.type === 'milestone') return g.progress >= 100;
+                return false;
+            }).length;
+            const activeStreaks = goals.filter(g => g.type === 'habit' && (g.streak || 0) > 0).length;
+
+            document.getElementById('overview-stats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Total Goals</div>
+                    <div class="stat-value">${totalGoals}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Completed</div>
+                    <div class="stat-value">${completedGoals}</div>
+                    <div class="stat-subtitle">${Math.round((completedGoals / totalGoals) * 100) || 0}% completion rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Streaks</div>
+                    <div class="stat-value">${activeStreaks}</div>
+                </div>
+            `;
+
+            // Recent goals
+            const recentGoals = [...goals].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
+            document.getElementById('recent-goals').innerHTML = recentGoals.length 
+                ? `<h3 style="margin: 2rem 0 1rem; font-size: 1.125rem">Recent Goals</h3>` + recentGoals.map(renderGoalCard).join('')
+                : '<div class="empty-state"><div class="empty-icon">🎯</div><p>No goals yet. Tap + to add your first goal!</p></div>';
+
+            // Category tabs
+            ['health', 'finance', 'academic', 'personal'].forEach(category => {
+                const categoryGoals = goals.filter(g => g.category === category);
+                const container = document.getElementById(`${category}-goals`);
+                container.innerHTML = categoryGoals.length
+                    ? categoryGoals.map(renderGoalCard).join('')
+                    : `<div class="empty-state"><div class="empty-icon">📊</div><p>No ${category} goals yet</p></div>`;
+            });
+        }
+
+        // Initial render
+        renderContent();
+
+        // PWA install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        // Close modal on outside click
+        document.getElementById('goal-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'goal-modal') closeModal();
+        });
+    </script>
+</body>
+</html>
