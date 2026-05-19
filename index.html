@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Goals">
+    <link rel="apple-touch-icon" href="icon.svg">
     <title>Goal Tracker</title>
     <link rel="manifest" href="manifest.json">
     <style>
@@ -813,6 +817,11 @@
         document.getElementById('goal-modal').addEventListener('click', (e) => {
             if (e.target.id === 'goal-modal') closeModal();
         });
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
     </script>
 </body>
 </html>
