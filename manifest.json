@@ -2,7 +2,7 @@
   "name": "Goal Tracker - Mattew Nolasco",
   "short_name": "Goals",
   "description": "Track health, finance, academic, and personal goals",
-  "start_url": "/goal-tracker.html",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#1a1a1a",
   "theme_color": "#1a1a1a",
