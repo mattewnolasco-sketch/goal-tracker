@@ -398,6 +398,132 @@
             flex: 1;
         }
 
+        .login-banner {
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .login-banner p {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn-google {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            color: #1a1a1a;
+            border: none;
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .user-name {
+            color: var(--text-secondary);
+        }
+
+        .btn-logout {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .opportunity-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent-academic);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .opportunity-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .opportunity-desc {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .opportunity-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .opportunity-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--accent-academic);
+            margin-bottom: 0.5rem;
+        }
+
+        .scan-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .scan-section h3 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .scan-section p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .btn-scan {
+            background: var(--accent-academic);
+            width: auto;
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+        }
+
+        .scanning-spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
         @media (max-width: 640px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -406,9 +532,23 @@
     </style>
 </head>
 <body>
+    <div id="login-banner" class="login-banner" style="display:none">
+        <p>Sign in with your school Gmail so Claude can find internships, study abroad programs, and scholarships for you.</p>
+        <a href="/auth/google" class="btn-google">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Sign in with Google
+        </a>
+    </div>
+
     <div class="header">
         <h1>🎯 Goal Tracker</h1>
-        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        <div style="display:flex;align-items:center;gap:0.75rem">
+            <div id="user-info" class="user-info" style="display:none">
+                <span id="user-name" class="user-name"></span>
+                <button class="btn-logout" onclick="logout()">Sign out</button>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </div>
     </div>
 
     <div class="tabs">
@@ -438,6 +578,14 @@
 
         <!-- Academic Tab -->
         <div id="academic-tab" class="tab-content">
+            <div id="gmail-scan-section" style="display:none">
+                <div class="scan-section">
+                    <h3>🔍 AI Academic Opportunities</h3>
+                    <p>Claude will scan your school Gmail for internships, study abroad programs, scholarships, and research opportunities.</p>
+                    <button class="btn btn-scan" onclick="scanGmail()" id="scan-btn">Scan Gmail for Opportunities</button>
+                </div>
+                <div id="opportunities-list"></div>
+            </div>
             <div id="academic-goals"></div>
         </div>
 
@@ -502,54 +650,138 @@
     </div>
 
     <script>
-        // Initialize app
-        let goals = JSON.parse(localStorage.getItem('goals') || '[]');
+        let goals = [];
+        let currentUser = null;
         let theme = localStorage.getItem('theme') || 'light';
 
-        // Set initial theme
         document.documentElement.setAttribute('data-theme', theme);
         updateThemeIcon();
 
-        // Sample data for first-time users
-        if (goals.length === 0) {
-            goals = [
-                {
-                    id: Date.now() + 1,
-                    title: 'FHA Down Payment Fund',
-                    category: 'finance',
-                    type: 'numeric',
-                    current: 5000,
-                    target: 18000,
-                    targetDate: '2027-12-31',
-                    notes: 'Yonkers house-hacking goal',
-                    createdAt: Date.now()
-                },
-                {
-                    id: Date.now() + 2,
-                    title: 'Gym 4x per week',
-                    category: 'health',
-                    type: 'habit',
-                    streak: 12,
-                    lastCompleted: Date.now() - 86400000,
-                    notes: 'Build consistency',
-                    createdAt: Date.now()
-                },
-                {
-                    id: Date.now() + 3,
-                    title: 'Maintain 3.8+ GPA',
-                    category: 'academic',
-                    type: 'milestone',
-                    progress: 75,
-                    targetDate: '2026-05-31',
-                    notes: 'Spring 2026 semester',
-                    createdAt: Date.now()
+        async function initApp() {
+            await checkAuth();
+            if (currentUser) {
+                await loadGoals();
+            } else {
+                loadLocalGoals();
+            }
+            renderContent();
+        }
+
+        async function checkAuth() {
+            try {
+                const res = await fetch('/auth/me');
+                const data = await res.json();
+                currentUser = data.user;
+                if (currentUser) {
+                    document.getElementById('login-banner').style.display = 'none';
+                    document.getElementById('user-info').style.display = 'flex';
+                    document.getElementById('user-name').textContent = currentUser.name || currentUser.email;
+                    document.getElementById('gmail-scan-section').style.display = 'block';
+                    loadOpportunities();
+                } else {
+                    document.getElementById('login-banner').style.display = 'block';
+                    document.getElementById('user-info').style.display = 'none';
                 }
+            } catch {
+                loadLocalGoals();
+            }
+        }
+
+        async function loadGoals() {
+            try {
+                const res = await fetch('/api/goals');
+                if (res.ok) {
+                    goals = await res.json();
+                    if (goals.length === 0) addSampleGoals();
+                }
+            } catch {
+                loadLocalGoals();
+            }
+        }
+
+        function loadLocalGoals() {
+            goals = JSON.parse(localStorage.getItem('goals') || '[]');
+            if (goals.length === 0) addSampleGoals();
+        }
+
+        function addSampleGoals() {
+            goals = [
+                { id: Date.now() + 1, title: 'FHA Down Payment Fund', category: 'finance', type: 'numeric', current: 5000, target: 18000, targetDate: '2027-12-31', notes: 'Yonkers house-hacking goal', createdAt: Date.now() },
+                { id: Date.now() + 2, title: 'Gym 4x per week', category: 'health', type: 'habit', streak: 12, lastCompleted: Date.now() - 86400000, notes: 'Build consistency', createdAt: Date.now() },
+                { id: Date.now() + 3, title: 'Maintain 3.8+ GPA', category: 'academic', type: 'milestone', progress: 75, targetDate: '2026-05-31', notes: 'Spring 2026 semester', createdAt: Date.now() }
             ];
             saveToStorage();
         }
 
-        function saveToStorage() {
+        async function saveToStorage() {
+            if (currentUser) return;
             localStorage.setItem('goals', JSON.stringify(goals));
+        }
+
+        async function logout() {
+            await fetch('/auth/logout', { method: 'POST' });
+            window.location.reload();
+        }
+
+        async function scanGmail() {
+            const btn = document.getElementById('scan-btn');
+            btn.innerHTML = '<span class="scanning-spinner">⏳</span> Scanning...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/academic/scan', { method: 'POST' });
+                const data = await res.json();
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    renderOpportunities(data.opportunities);
+                    if (data.scanned !== undefined) {
+                        btn.innerHTML = `✅ Scanned ${data.scanned} emails`;
+                        setTimeout(() => { btn.innerHTML = 'Scan Gmail for Opportunities'; btn.disabled = false; }, 3000);
+                        return;
+                    }
+                }
+            } catch (err) {
+                alert('Scan failed. Make sure the server is running.');
+            }
+            btn.innerHTML = 'Scan Gmail for Opportunities';
+            btn.disabled = false;
+        }
+
+        async function loadOpportunities() {
+            try {
+                const res = await fetch('/api/academic/opportunities');
+                if (res.ok) {
+                    const opps = await res.json();
+                    renderOpportunities(opps);
+                }
+            } catch {}
+        }
+
+        function renderOpportunities(opps) {
+            const container = document.getElementById('opportunities-list');
+            if (!opps || opps.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            container.innerHTML = `<h3 style="margin-bottom:1rem;font-size:1rem">✨ Opportunities Found (${opps.length})</h3>` +
+                opps.map(opp => `
+                    <div class="opportunity-card">
+                        <div class="opportunity-badge">${opp.category?.replace('_', ' ') || 'academic'}</div>
+                        <div class="opportunity-title">${opp.title}</div>
+                        <div class="opportunity-desc">${opp.description || ''}</div>
+                        <div class="opportunity-meta">
+                            ${opp.source ? `<span>📧 ${opp.source}</span>` : ''}
+                            ${opp.deadline ? `<span>📅 Deadline: ${opp.deadline}</span>` : ''}
+                        </div>
+                        <button class="delete-btn" onclick="dismissOpportunity(${opp.id})" style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-muted)">Dismiss</button>
+                    </div>
+                `).join('');
+        }
+
+        async function dismissOpportunity(id) {
+            await fetch(`/api/academic/opportunities/${id}`, { method: 'DELETE' });
+            loadOpportunities();
         }
 
         function toggleTheme() {
@@ -600,37 +832,46 @@
             }
         }
 
-        function saveGoal(event) {
+        async function saveGoal(event) {
             event.preventDefault();
-            
+
             const id = document.getElementById('goal-id').value;
-            const goal = {
-                id: id ? parseInt(id) : Date.now(),
+            const type = document.getElementById('goal-type').value;
+            const existing = id ? goals.find(g => g.id === parseInt(id)) : null;
+
+            const payload = {
                 title: document.getElementById('goal-title').value,
                 category: document.getElementById('goal-category').value,
-                type: document.getElementById('goal-type').value,
-                targetDate: document.getElementById('goal-date').value,
-                notes: document.getElementById('goal-notes').value,
-                createdAt: id ? goals.find(g => g.id === parseInt(id)).createdAt : Date.now()
+                type,
+                target_date: document.getElementById('goal-date').value || null,
+                notes: document.getElementById('goal-notes').value || null,
+                target_value: type === 'numeric' ? parseFloat(document.getElementById('goal-target').value) || 0 : 0,
+                current_value: type === 'numeric' ? parseFloat(document.getElementById('goal-current').value) || 0 : 0,
+                streak: type === 'habit' ? (existing?.streak || 0) : 0,
+                progress: type === 'milestone' ? (existing?.progress || 0) : 0
             };
 
-            if (goal.type === 'numeric') {
-                goal.target = parseFloat(document.getElementById('goal-target').value) || 0;
-                goal.current = parseFloat(document.getElementById('goal-current').value) || 0;
-            } else if (goal.type === 'habit') {
-                goal.streak = id ? goals.find(g => g.id === parseInt(id)).streak || 0 : 0;
+            if (currentUser) {
+                try {
+                    const res = await fetch(id ? `/api/goals/${id}` : '/api/goals', {
+                        method: id ? 'PUT' : 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const saved = await res.json();
+                    if (id) {
+                        goals = goals.map(g => g.id === parseInt(id) ? saved : g);
+                    } else {
+                        goals.push(saved);
+                    }
+                } catch { return; }
             } else {
-                goal.progress = id ? goals.find(g => g.id === parseInt(id)).progress || 0 : 0;
+                const goal = { id: id ? parseInt(id) : Date.now(), ...payload, current: payload.current_value, target: payload.target_value, targetDate: payload.target_date, createdAt: existing?.createdAt || Date.now() };
+                if (id) goals = goals.map(g => g.id === parseInt(id) ? goal : g);
+                else goals.push(goal);
+                localStorage.setItem('goals', JSON.stringify(goals));
             }
 
-            if (id) {
-                const index = goals.findIndex(g => g.id === parseInt(id));
-                goals[index] = goal;
-            } else {
-                goals.push(goal);
-            }
-
-            saveToStorage();
             closeModal();
             renderContent();
         }
@@ -656,49 +897,54 @@
             document.getElementById('goal-modal').classList.add('active');
         }
 
-        function deleteGoal(id) {
-            if (confirm('Are you sure you want to delete this goal?')) {
-                goals = goals.filter(g => g.id !== id);
-                saveToStorage();
-                renderContent();
+        async function deleteGoal(id) {
+            if (!confirm('Are you sure you want to delete this goal?')) return;
+            if (currentUser) {
+                await fetch(`/api/goals/${id}`, { method: 'DELETE' });
+            } else {
+                localStorage.setItem('goals', JSON.stringify(goals.filter(g => g.id !== id)));
             }
-        }
-
-        function updateProgress(id, value) {
-            const goal = goals.find(g => g.id === id);
-            if (!goal) return;
-
-            if (goal.type === 'numeric') {
-                goal.current = parseFloat(value);
-            } else if (goal.type === 'milestone') {
-                goal.progress = parseFloat(value);
-            }
-
-            saveToStorage();
+            goals = goals.filter(g => g.id !== id);
             renderContent();
         }
 
-        function incrementStreak(id) {
+        async function updateProgress(id, value) {
+            const goal = goals.find(g => g.id === id);
+            if (!goal) return;
+            const patch = goal.type === 'numeric' ? { current_value: parseFloat(value) } : { progress: parseFloat(value) };
+            if (currentUser) {
+                const res = await fetch(`/api/goals/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) });
+                const updated = await res.json();
+                goals = goals.map(g => g.id === id ? updated : g);
+            } else {
+                if (goal.type === 'numeric') goal.current = parseFloat(value);
+                else goal.progress = parseFloat(value);
+                localStorage.setItem('goals', JSON.stringify(goals));
+            }
+            renderContent();
+        }
+
+        async function incrementStreak(id) {
             const goal = goals.find(g => g.id === id);
             if (!goal || goal.type !== 'habit') return;
 
             const today = new Date().setHours(0, 0, 0, 0);
             const lastCompleted = goal.lastCompleted ? new Date(goal.lastCompleted).setHours(0, 0, 0, 0) : 0;
             const daysDiff = Math.floor((today - lastCompleted) / 86400000);
+            if (daysDiff === 0) { alert('Already completed today!'); return; }
 
-            if (daysDiff === 0) {
-                alert('Already completed today!');
-                return;
-            }
+            const newStreak = daysDiff === 1 ? (goal.streak || 0) + 1 : 1;
+            const patch = { streak: newStreak, last_completed: Date.now() };
 
-            if (daysDiff === 1) {
-                goal.streak = (goal.streak || 0) + 1;
+            if (currentUser) {
+                const res = await fetch(`/api/goals/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) });
+                const updated = await res.json();
+                goals = goals.map(g => g.id === id ? updated : g);
             } else {
-                goal.streak = 1;
+                goal.streak = newStreak;
+                goal.lastCompleted = Date.now();
+                localStorage.setItem('goals', JSON.stringify(goals));
             }
-
-            goal.lastCompleted = Date.now();
-            saveToStorage();
             renderContent();
         }
 
@@ -803,8 +1049,7 @@
             });
         }
 
-        // Initial render
-        renderContent();
+        initApp();
 
         // PWA install prompt
         let deferredPrompt;
